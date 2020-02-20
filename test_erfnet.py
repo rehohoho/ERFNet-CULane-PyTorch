@@ -10,7 +10,7 @@ import cv2
 import utils.transforms as tf
 import numpy as np
 import models
-from models import sync_bn
+# from models import sync_bn
 import dataset as ds
 from options.options import parser
 import torch.nn.functional as F
@@ -65,11 +65,17 @@ def main():
 
     # Data loading code
 
-    test_loader = torch.utils.data.DataLoader(
-        getattr(ds, args.dataset.replace("CULane", "VOCAug") + 'DataSet')(data_list=args.val_list, transform=torchvision.transforms.Compose([
+    voc_loader = getattr(ds, args.dataset.replace("CULane", "VOCAug") + 'DataSet')
+    t_loader = voc_loader(data_list=args.val_list, 
+        transform=torchvision.transforms.Compose([
             tf.GroupRandomScaleNew(size=(args.img_width, args.img_height), interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)),
             tf.GroupNormalize(mean=(input_mean, (0, )), std=(input_std, (1, ))),
-        ])), batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=False)
+        ])
+    )
+    
+    test_loader = torch.utils.data.DataLoader(t_loader, batch_size=args.batch_size, 
+                                            shuffle=False, num_workers=args.workers, 
+                                            pin_memory=False)
 
     # define loss function (criterion) optimizer and evaluator
     weights = [1.0 for _ in range(5)]
@@ -98,7 +104,7 @@ def validate(val_loader, model, criterion, iter, evaluator, logger=None):
 
     end = time.time()
     for i, (input, target, img_name) in enumerate(val_loader):
-
+        print(input.shape)
         input_var = torch.autograd.Variable(input, volatile=True)
 
         # compute output
