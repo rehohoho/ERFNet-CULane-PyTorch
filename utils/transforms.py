@@ -2,6 +2,7 @@ import random
 import cv2
 import numpy as np
 import numbers
+from math import ceil
 
 __all__ = ['GroupRandomCrop', 'GroupCenterCrop', 'GroupRandomPad', 'GroupCenterPad', 'GroupRandomScale', 'GroupRandomHorizontalFlip', 'GroupNormalize']
 
@@ -155,16 +156,21 @@ class GroupConcerPad(object):
         return out_images
 
 class GroupRandomScaleNew(object):
-    def __init__(self, size=(976, 208), interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)):
+    def __init__(self, 
+                size=(976, 208), 
+                image_height=590,
+                image_width=1640,
+                interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)):
         self.size = size
         self.interpolation = interpolation
-
+        self.scale_w = self.size[0] * 1.0 / image_width
+        self.scale_h = self.size[1] * 1.0 / ceil(image_width / (1640/350))
+        
     def __call__(self, img_group):
         assert (len(self.interpolation) == len(img_group))
-        scale_w, scale_h = self.size[0] * 1.0 / 1640, self.size[1] * 1.0 / 350
         out_images = list()
         for img, interpolation in zip(img_group, self.interpolation):
-            out_images.append(cv2.resize(img, None, fx=scale_w, fy=scale_h, interpolation=interpolation))
+            out_images.append(cv2.resize(img, None, fx=self.scale_w, fy=self.scale_h, interpolation=interpolation))
             if len(img.shape) > len(out_images[-1].shape):
                 out_images[-1] = out_images[-1][..., np.newaxis]  # single channel image
         return out_images

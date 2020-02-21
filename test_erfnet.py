@@ -64,13 +64,21 @@ def main():
     cudnn.fastest = True
 
     # Data loading code
-
+    transform = torchvision.transforms.Compose([
+                    tf.GroupRandomScaleNew(size=(args.mask_width, args.mask_height), 
+                                           interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST),
+                                           image_height=args.image_height,
+                                           image_width=args.image_width),
+                    tf.GroupNormalize(mean=(input_mean, (0, )), 
+                                      std=(input_std, (1, ))),
+                ])
     voc_loader = getattr(ds, args.dataset.replace("CULane", "VOCAug") + 'DataSet')
-    t_loader = voc_loader(data_list=args.val_list, 
-        transform=torchvision.transforms.Compose([
-            tf.GroupRandomScaleNew(size=(args.img_width, args.img_height), interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)),
-            tf.GroupNormalize(mean=(input_mean, (0, )), std=(input_std, (1, ))),
-        ])
+    t_loader = voc_loader(dataset_path=args.dataset_path, 
+                        data_list=args.val_list, 
+                        transform=transform,
+                        image_height=args.image_height,
+                        image_width=args.image_width,
+                        is_testing=True
     )
     
     test_loader = torch.utils.data.DataLoader(t_loader, batch_size=args.batch_size, 
@@ -104,7 +112,7 @@ def validate(val_loader, model, criterion, iter, evaluator, logger=None):
 
     end = time.time()
     for i, (input, target, img_name) in enumerate(val_loader):
-        print(input.shape)
+        
         input_var = torch.autograd.Variable(input, volatile=True)
 
         # compute output
@@ -118,14 +126,14 @@ def validate(val_loader, model, criterion, iter, evaluator, logger=None):
         pred_exist = output_exist.data.cpu().numpy() # BxO
 
         for cnt in range(len(img_name)):
-            directory = 'predicts/vgg_SCNN_DULR_w9' + img_name[cnt][:-10]
+            directory = 'predicts/vgg_SCNN_DULR_w9%s' %(os.path.dirname(img_name[cnt]))
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            file_exist = open('predicts/vgg_SCNN_DULR_w9'+img_name[cnt].replace('.jpg', '.exist.txt'), 'w')
+            file_exist = open('predicts/vgg_SCNN_DULR_w9'+img_name[cnt].replace(args.naming_format, '.exist.txt'), 'w')
             for num in range(4):
                 prob_map = (pred[cnt][num+1]*255).astype(int)
                 save_img = cv2.blur(prob_map,(9,9))
-                cv2.imwrite('predicts/vgg_SCNN_DULR_w9'+img_name[cnt].replace('.jpg', '_'+str(num+1)+'_avg.png'), save_img)
+                cv2.imwrite('predicts/vgg_SCNN_DULR_w9'+img_name[cnt].replace(args.naming_format, '_'+str(num+1)+'_avg.png'), save_img)
                 if pred_exist[cnt][num] > 0.5:
                     file_exist.write('1 ')
                 else:

@@ -76,7 +76,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         getattr(ds, args.dataset.replace("CULane", "VOCAug") + 'DataSet')(data_list=args.train_list, transform=torchvision.transforms.Compose([
             tf.GroupRandomScale(size=(0.595, 0.621), interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)),
-            tf.GroupRandomCropRatio(size=(args.img_width, args.img_height)),
+            tf.GroupRandomCropRatio(size=(args.mask_width, args.mask_height)),
             tf.GroupRandomRotation(degree=(-1, 1), interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST), padding=(input_mean, (ignore_label, ))),
             tf.GroupNormalize(mean=(input_mean, (0, )), std=(input_std, (1, ))),
         ])), batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=False, drop_last=True)
@@ -84,7 +84,7 @@ def main():
     val_loader = torch.utils.data.DataLoader(
         getattr(ds, args.dataset.replace("CULane", "VOCAug") + 'DataSet')(data_list=args.val_list, transform=torchvision.transforms.Compose([
             tf.GroupRandomScale(size=(0.595, 0.621), interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)),
-            tf.GroupRandomCropRatio(size=(args.img_width, args.img_height)),
+            tf.GroupRandomCropRatio(size=(args.mask_width, args.mask_height)),
             tf.GroupNormalize(mean=(input_mean, (0, )), std=(input_std, (1, ))),
         ])), batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=False)
 
