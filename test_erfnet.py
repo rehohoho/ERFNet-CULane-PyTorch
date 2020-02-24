@@ -68,7 +68,8 @@ def main():
                     tf.GroupRandomScaleNew(size=(args.mask_width, args.mask_height), 
                                            interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST),
                                            image_height=args.image_height,
-                                           image_width=args.image_width),
+                                           image_width=args.image_width,
+                                           height_from_bottom=args.height_from_bottom),
                     tf.GroupNormalize(mean=(input_mean, (0, )), 
                                       std=(input_std, (1, ))),
                 ])
@@ -78,7 +79,8 @@ def main():
                         transform=transform,
                         image_height=args.image_height,
                         image_width=args.image_width,
-                        is_testing=True
+                        is_testing=True,
+                        height_from_bottom=args.height_from_bottom
     )
     
     test_loader = torch.utils.data.DataLoader(t_loader, batch_size=args.batch_size, 
@@ -113,6 +115,12 @@ def validate(val_loader, model, criterion, iter, evaluator, logger=None):
     end = time.time()
     for i, (input, target, img_name) in enumerate(val_loader):
         
+        tar_path = '%s' %img_name[0][1:]
+        if not os.path.exists(os.path.dirname(tar_path)):
+            os.mkdir(os.path.dirname(tar_path))
+        image_write = input[0].permute(1,2,0).cpu().numpy()
+        cv2.imwrite(tar_path, image_write)
+
         input_var = torch.autograd.Variable(input, volatile=True)
 
         # compute output
@@ -129,15 +137,18 @@ def validate(val_loader, model, criterion, iter, evaluator, logger=None):
             directory = 'predicts/vgg_SCNN_DULR_w9%s' %(os.path.dirname(img_name[cnt]))
             if not os.path.exists(directory):
                 os.makedirs(directory)
+                print('%s created.' %directory)
             file_exist = open('predicts/vgg_SCNN_DULR_w9'+img_name[cnt].replace(args.naming_format, '.exist.txt'), 'w')
             for num in range(4):
                 prob_map = (pred[cnt][num+1]*255).astype(int)
                 save_img = cv2.blur(prob_map,(9,9))
                 cv2.imwrite('predicts/vgg_SCNN_DULR_w9'+img_name[cnt].replace(args.naming_format, '_'+str(num+1)+'_avg.png'), save_img)
-                if pred_exist[cnt][num] > 0.5:
-                    file_exist.write('1 ')
-                else:
-                    file_exist.write('0 ')
+                file_exist.write('1 ')
+                # if pred_exist[cnt][num] > 0.5:
+                    # file_exist.write('1 ')
+                # else:
+                    # file_exist.write('0 ')
+            print(pred_exist[cnt])
             file_exist.close()
 
         # measure elapsed time
