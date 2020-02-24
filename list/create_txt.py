@@ -2,7 +2,7 @@ import os
 import argparse
 
 
-def create_txtfile_of_png_paths(directory:str, output_txt_path:str):
+def create_txtfile_of_png_paths(directory:str, naming_format:str, output_txt_path:str):
     
     walk = os.walk(directory)
     parent_directory = os.path.dirname(directory)
@@ -10,7 +10,7 @@ def create_txtfile_of_png_paths(directory:str, output_txt_path:str):
 
     for root, dirnames, filenames in walk:
         for basename in filenames:
-            if basename.endswith('.png'):
+            if basename.endswith(naming_format):
                 path = os.path.join(root, basename)
                 path = path.replace(parent_directory, '')
                 all_filenames.append(path)
@@ -30,6 +30,11 @@ if __name__ == '__main__':
         help='Target directory to find image png files in'
     )
     parser.add_argument(
+        '--naming_format',
+        required=True,
+        help='Naming format for image files, eg \'.png\', \'left8bigImg.jpg\''
+    )
+    parser.add_argument(
         '--txt_path',
         required=True,
         help='Path of output text file'
@@ -37,4 +42,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    create_txtfile_of_png_paths(args.directory, args.txt_path)
+    create_txtfile_of_png_paths(args.directory, args.naming_format, args.txt_path)
