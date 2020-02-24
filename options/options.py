@@ -5,6 +5,7 @@ parser.add_argument('dataset', type=str, choices=['VOCAug', 'VOC2012', 'COCO', '
 parser.add_argument('--dataset_path', type=str, required=True)
 parser.add_argument('--image_height', type=int, default=590)
 parser.add_argument('--image_width', type=int, default=1640)
+parser.add_argument('--height_from_bottom', type=float, default=0.59322)
 parser.add_argument('--naming_format', type=str, default='.jpg')
 parser.add_argument('method', type=str, choices=['FCN', 'DeepLab', 'DeepLab3', 'PSPNet', 'ERFNet'])
 parser.add_argument('train_list', type=str)
@@ -21,7 +22,7 @@ parser.add_argument('--local_rank', type=int, default=0) # distributed data para
 
 # ========================= Learning Configs ==========================
 parser.add_argument('--epochs', default=24, type=int, metavar='N', help='number of total epochs to run')
-parser.add_argument('-b', '--batch-size', default=8, type=int, metavar='N', help='mini-batch size (default: 256)')
+parser.add_argument('-b', '--batch_size', default=8, type=int, metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('--lr', '--learning-rate', default=0.001, type=float, metavar='LR', help='initial learning rate')
 parser.add_argument('--lr_steps', default=[10, 20], type=float, nargs="+", metavar='LRSteps', help='epochs to decay learning rate by 10')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M', help='momentum')

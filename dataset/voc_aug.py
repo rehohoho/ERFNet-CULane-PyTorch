@@ -12,6 +12,7 @@ class VOCAugDataSet(Dataset):
                 transform=None,
                 image_height=590,
                 image_width=1640,
+                height_from_bottom=0.59322,
                 is_testing=False):
 
         with open(os.path.join(dataset_path, data_list + '.txt')) as f:
@@ -25,7 +26,13 @@ class VOCAugDataSet(Dataset):
                 self.label_list.append(dataset_path + line.strip().split(" ")[1])
                 self.exist_list.append(np.array([int(line.strip().split(" ")[2]), int(line.strip().split(" ")[3]), int(line.strip().split(" ")[4]), int(line.strip().split(" ")[5])]))
         
-        self.image_cutoff = int(image_height - image_width / (1640/350))
+        if 0.0 < height_from_bottom <= 1.0:
+            self.image_cutoff = int((1.0 - height_from_bottom) * image_height)
+        else:
+            print('Invalid value for height_from_bottom %s, expected 0 < height_from_bottom <= 1' %height_from_bottom)
+            print('Using default aspect ratio for crop')
+            return
+
         self.img_path = dataset_path
         self.gt_path = dataset_path
         self.transform = transform

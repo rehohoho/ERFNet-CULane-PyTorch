@@ -160,12 +160,21 @@ class GroupRandomScaleNew(object):
                 size=(976, 208), 
                 image_height=590,
                 image_width=1640,
+                height_from_bottom=0.59322,
                 interpolation=(cv2.INTER_LINEAR, cv2.INTER_NEAREST)):
         self.size = size
         self.interpolation = interpolation
-        self.scale_w = self.size[0] * 1.0 / image_width
-        self.scale_h = self.size[1] * 1.0 / ceil(image_width / (1640/350))
         
+        if 0.0 < height_from_bottom <= 1.0:
+            cropped_height = height_from_bottom * image_height
+        else:
+            print('Invalid value for height_from_bottom %s, expected 0 < height_from_bottom <= 1' %height_from_bottom)
+            print('Using default aspect ratio for resizing')
+            return
+
+        self.scale_w = self.size[0] * 1.0 / image_width
+        self.scale_h = self.size[1] * 1.0 / cropped_height
+
     def __call__(self, img_group):
         assert (len(self.interpolation) == len(img_group))
         out_images = list()
