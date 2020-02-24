@@ -1,5 +1,8 @@
 *.pyc
 *.log
+list/*.txt
 
 list/**/
 predicts/
+0531/
+driver_37_30frame/
